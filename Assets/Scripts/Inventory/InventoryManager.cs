@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Escapist.Persistence;
 
 namespace Escapist.Inventory
 {
-    public class InventoryManager : MonoBehaviour
+    public class InventoryManager : MonoBehaviour, ISavable
     {
         // Singleton pattern accessor for clear cross-subsystem state hooks
         public static InventoryManager Instance { get; private set; }
@@ -123,6 +124,36 @@ namespace Escapist.Inventory
                 if (slot.Data.ItemId == itemId) tally += slot.Quantity;
             }
             return tally;
+        }
+
+        public void CaptureState(SaveData data)
+        {
+            data.inventorySlots.Clear();
+            foreach (var slot in internalSlots)
+            {
+                data.inventorySlots.Add(new SaveData.SerializableInventorySlot
+                {
+                    itemId = slot.Data.ItemId,
+                    quantity = slot.Quantity
+                });
+            }
+        }
+
+        public void RestoreState(SaveData data)
+        {
+            internalSlots.Clear();
+            foreach (var savedSlot in data.inventorySlots)
+            {
+                // This assumes your ItemData assets reside inside an Assets/Resources/Items folder matching ItemId names
+                ItemData loadedAsset = Resources.Load<ItemData>($"Items/{savedSlot.itemId}");
+                if (loadedAsset != null)
+                {
+                    internalSlots.Add(new InventoryInstance(loadedAsset, savedSlot.quantity));
+                }
+            }
+            // Trigger redraw events back down into Ashly's UI
+            // Using a safe invocation pattern to ensure event bindings exist before running
+            // OnInventoryUpdated?.Invoke(); 
         }
     }
 }
