@@ -5,7 +5,7 @@ using Escapist.Persistence;
 
 namespace Escapist.Inventory
 {
-    public class InventoryManager : MonoBehaviour, ISavable
+    public class InventoryManager : MonoBehaviour, ISaveable
     {
         // Singleton pattern accessor for clear cross-subsystem state hooks
         public static InventoryManager Instance { get; private set; }
