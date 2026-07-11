@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Escapist.Persistence;
 
 namespace Escapist.Player
 {
@@ -100,6 +101,24 @@ namespace Escapist.Player
                 camPos.y = Mathf.Lerp(camPos.y, targetHeight * 0.45f, crouchTransitionSpeed * Time.deltaTime);
                 cameraHolder.localPosition = camPos;
             }
+        }
+
+        public void CaptureState(SaveData data)
+        {
+            data.playerPosition = transform.position;
+            data.playerRotation = transform.eulerAngles;
+        }
+
+        public void RestoreState(SaveData data)
+        {
+            // Temporarily suppress the controller to force kinematic positioning updates
+            var controller = GetComponent<CharacterController>();
+            if (controller != null) controller.enabled = false;
+
+            transform.position = data.playerPosition;
+            transform.eulerAngles = data.playerRotation;
+
+            if (controller != null) controller.enabled = true;
         }
     }
 }
